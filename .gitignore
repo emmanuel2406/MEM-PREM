@@ -2,6 +2,5 @@
 vllm
 alpaca_data_cleaned.json
 run_llama.sbatch
-activate_env.sh
 create_env.sh
 install_vllm.sh

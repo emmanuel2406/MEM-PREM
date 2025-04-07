@@ -9,5 +9,3 @@ conda deactivate
 conda deactivate
 
 conda activate vllm
-
-export HF_TOKEN=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
