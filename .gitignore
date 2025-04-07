@@ -1,1 +1,4 @@
 .myenv
+vllm
+alpaca_data_cleaned.json
+run_llama.sbatch

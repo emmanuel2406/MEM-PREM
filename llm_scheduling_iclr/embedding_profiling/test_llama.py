@@ -5,11 +5,11 @@ from transformers import AutoTokenizer
 from vllm import LLM, SamplingParams
 
 # Load the model and tokenizer
-model = LLM("/hf/Meta-Llama-3-8B-Instruct", dtype="float16")
-tokenizer = AutoTokenizer.from_pretrained("/hf/Meta-Llama-3-8B-Instruct")
+model = LLM("meta-llama/Meta-Llama-3-8B-Instruct", dtype="float16")
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Meta-Llama-3-8B-Instruct")
 
 # Load JSON data from file
-with open('/hf/alpaca-cleaned/alpaca_data_cleaned.json', 'r') as file:
+with open('./llm_scheduling_iclr/alpaca_data_cleaned.json', 'r') as file:
     data = json.load(file)
 
 print(f"total record~{datetime.now()}: {len(data)}")
