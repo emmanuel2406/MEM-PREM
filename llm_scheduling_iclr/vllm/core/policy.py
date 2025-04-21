@@ -12,7 +12,7 @@ class Policy:
         # Initialize tracking variables
         self.active_sequences: Dict[str, SequenceGroup] = {}  # Currently running sequences
         self.preempted_sequences: Dict[str, SequenceGroup] = {}  # Preempted but not completed sequences
-        self.age_capacity = 1000  # Maximum sum of token ages threshold (configurable)
+        self.age_capacity = 512  # Maximum sum of token ages threshold (configurable)
 
     def get_priority(
         self,
@@ -71,6 +71,9 @@ class Policy:
 
 
 class FCFS(Policy):
+    """
+    First-come, first-served policy
+    """
 
     def get_priority(
         self,
@@ -80,20 +83,25 @@ class FCFS(Policy):
         return now - seq_group.metrics.arrival_time
 
 class SPRPT(Policy):
-
+    """
+    Shortest Preemption Remaining Processing Time
+    """
     def get_priority(
         self,
         now: float,
         seq_group: SequenceGroup,
     ) -> float:
         #return seq_group.get_seqs()[0].expected_out_len
-        predicted_len = seq_group.sampling_params.remain_length
+        predicted_len = seq_group.sampling_params.remain_length[0]
         generated_len = seq_group.get_seqs()[0].data.get_num_computed_tokens()
         score = predicted_len - generated_len
 
         return -score
 
 class SJF(Policy):
+    """
+    Shortest Job First
+    """
     def get_priority(
         self,
         now: float,
@@ -111,7 +119,7 @@ class LSPRPT(Policy):
     ) -> float:
         #return seq_group.get_seqs()[0].expected_out_len
         #higher score means higher priority
-        predicted_len = seq_group.sampling_params.remain_length
+        predicted_len = seq_group.sampling_params.remain_length[0]
         generated_len = seq_group.get_seqs()[0].data.get_num_computed_tokens()
         if generated_len > t_limit*predicted_len:
             score = sys.maxsize
@@ -148,6 +156,9 @@ class RPSPRPT(Policy):
         return waiting_priority - running_priority
 
 class LRPSPRPT(Policy):
+    """
+    Limited Preemption Shorest Remaining Processing Time
+    """
     def get_priority(
         self,
         now: float,
@@ -188,7 +199,8 @@ class DTPRPT(Policy):
         now: float,
         seq_group: SequenceGroup,
         type: str = 'parabola',
-        hp: float = 0.8 #hyperparameter in type
+        hp: float = 0.8, #hyperparameter in type
+        **kwargs
     ) -> float:
         m0 = self.get_age_ratio()
         if type == 'parabola':
