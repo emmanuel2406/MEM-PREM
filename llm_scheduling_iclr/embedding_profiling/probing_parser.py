@@ -78,10 +78,10 @@ def write_json(records, output_file_path):
         json.dump({'records': records, 'total': len(records)}, json_file, indent=4)
 
 
-file_name = 'nohup2k'
+file_name = 'nohup4k'
 
 log_file_path = f'./{file_name}.out'
-output_file_path = './llama3-2k.json'
+output_file_path = './llama3-4k.json'
 
 records = parse_log(log_file_path)
 write_json(records, output_file_path)
