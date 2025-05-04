@@ -1,0 +1,42 @@
+INFO 04-08 18:34:25 [__init__.py:256] Automatically detected platform cpu.
+Running simulations for LRPSPRPT...
+Running simulations for DTPRPT...
+                policy  ...                                     detailed_stats
+0             LRPSPRPT  ...  {'completed_requests': 1097, 'total_wait_time'...
+1     DTPRPT(parabola)  ...  {'completed_requests': 1084, 'total_wait_time'...
+2    DTPRPT(hyperbola)  ...  {'completed_requests': 1156, 'total_wait_time'...
+3  DTPRPT(exponential)  ...  {'completed_requests': 1202, 'total_wait_time'...
+
+[4 rows x 7 columns]
+
+Detailed Performance Summary:
+================================================================================
+
+LRPSPRPT:
+  Completed requests: 1097
+  Average wait time: 191.94
+  Average turnaround time: 39.69
+  Average JCT ratio: 0.28
+  Average utilization: 1.00
+
+DTPRPT(parabola):
+  Completed requests: 1084
+  Average wait time: 134.70
+  Average turnaround time: 88.37
+  Average JCT ratio: 0.60
+  Average utilization: 0.99
+
+DTPRPT(hyperbola):
+  Completed requests: 1156
+  Average wait time: 173.65
+  Average turnaround time: 82.36
+  Average JCT ratio: 0.48
+  Average utilization: 1.00
+
+DTPRPT(exponential):
+  Completed requests: 1202
+  Average wait time: 114.58
+  Average turnaround time: 54.96
+  Average JCT ratio: 0.40
+  Average utilization: 1.00
+================================================================================

@@ -1,0 +1,51 @@
+INFO 04-08 21:53:22 [__init__.py:256] Automatically detected platform cpu.
+Running simulations for SPRPT...
+Running simulations for LRPSPRPT...
+Running simulations for DTPRPT...
+                    policy  ...  peak_memory
+0                    SPRPT  ...           87
+1                 LRPSPRPT  ...           71
+2     DTPRPT(parabola)_0.7  ...           70
+3    DTPRPT(hyperbola)_0.7  ...           96
+4  DTPRPT(exponential)_0.6  ...           74
+
+[5 rows x 8 columns]
+
+Detailed Performance Summary:
+================================================================================
+
+SPRPT:
+  Completed requests: 189
+  Average wait time: 311.22
+  Mean response time: 362.95
+  Average JCT ratio: 6.71
+  Average utilization: 0.99
+
+LRPSPRPT:
+  Completed requests: 188
+  Average wait time: 250.32
+  Mean response time: 302.72
+  Average JCT ratio: 5.60
+  Average utilization: 0.99
+
+DTPRPT(parabola)_0.7:
+  Completed requests: 190
+  Average wait time: 284.29
+  Mean response time: 336.81
+  Average JCT ratio: 6.31
+  Average utilization: 0.99
+
+DTPRPT(hyperbola)_0.7:
+  Completed requests: 189
+  Average wait time: 457.99
+  Mean response time: 510.59
+  Average JCT ratio: 9.50
+  Average utilization: 0.99
+
+DTPRPT(exponential)_0.6:
+  Completed requests: 190
+  Average wait time: 370.79
+  Mean response time: 423.08
+  Average JCT ratio: 7.92
+  Average utilization: 0.98
+================================================================================
