@@ -41,17 +41,18 @@ class Sequence:
 
 
 class SequenceGroup:
-    def __init__(self, request_id: str, arrival_time: float, predicted_length: int):
+    def __init__(self, request_id: str, arrival_time: float, predicted_length: int, true_length: int):
         self.request_id = request_id
         self.metrics = Metrics(arrival_time=arrival_time)
         
         # Create a list of remaining lengths for each position
         # This simulates how predicted remaining tokens decreases as we generate
         remain_length = []
-        for i in range(predicted_length):
+        for i in range(true_length):
             remain_length.append(predicted_length - i)
 
         self.sampling_params = SamplingParams(remain_length=remain_length)
+        self.true_length = true_length
         self._seqs = [Sequence()]
 
     def get_seqs(self) -> List[Sequence]:
@@ -63,7 +64,7 @@ class SequenceGroup:
 
 # Simulation environment
 class RequestGenerator:
-    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None, seed=None):
+    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None, seed=None, sigma=10):
         self.env = env
         self.scheduler = scheduler
         self.arrival_rate = arrival_rate
@@ -73,8 +74,10 @@ class RequestGenerator:
             "long": (0.3, 500, 1000)   # 30% chance, 500-1000 tokens
         }
         self.random = random.Random(seed)
+        self.np_random = np.random.default_rng(seed)
         self.request_count = 0
         self.env.process(self.generate_requests())
+        self.sigma = sigma
 
     def generate_requests(self):
         while True:
@@ -88,12 +91,13 @@ class RequestGenerator:
             )[0]
 
             dist = self.length_distribution[length_type]
-            length = self.random.randint(dist[1], dist[2])
+            true_length = self.random.randint(dist[1], dist[2])
+            predicted_length = int(true_length + self.sigma * self.np_random.standard_normal())
 
             # Create sequence group and submit to scheduler
             request_id = f"req_{self.request_count}"
             self.request_count += 1
-            seq_group = SequenceGroup(request_id, self.env.now, length)
+            seq_group = SequenceGroup(request_id, self.env.now, predicted_length, true_length)
 
             self.scheduler.submit_request(seq_group)
 
@@ -120,7 +124,8 @@ class Scheduler:
             "jct_ratios": [],  # Job Completion Time / Job Size
             "utilization_log": [],
             "peak_age": 0,
-            "current_age": 0
+            "current_age": 0,
+            "total_preemptions": 0,
         }
         
         # Start the scheduler process
@@ -129,7 +134,7 @@ class Scheduler:
     def submit_request(self, seq_group):
         self.waiting_queue.append(seq_group)
         # Log request size
-        self.stats["request_lengths"].append(seq_group.sampling_params.remain_length[0])
+        self.stats["request_lengths"].append(seq_group.true_length)
         
     def run(self):
         while True:
@@ -165,14 +170,14 @@ class Scheduler:
     
     def process_sequence(self, seq_group):
         request_id = seq_group.request_id
-        total_length = seq_group.sampling_params.remain_length[0]
+        true_remain_length = seq_group.true_length - seq_group.get_seqs()[0].data.get_num_computed_tokens()
         current_tokens = 0
         
         start_time = self.env.now
         
-        while current_tokens < total_length:
+        while current_tokens < true_remain_length:
             # Update token count
-            tokens_to_generate = min(self.token_gen_rate, total_length - current_tokens)
+            tokens_to_generate = min(self.token_gen_rate, true_remain_length - current_tokens)
             current_tokens += tokens_to_generate
             seq_group.update_tokens(current_tokens)
 
@@ -180,7 +185,7 @@ class Scheduler:
             yield self.env.timeout(1.0)  # Each step takes 1 time unit
 
             # Update age
-            self.stats["current_age"] += 1
+            self.stats["current_age"] += tokens_to_generate
 
             # Check if we should be preempted
             if self.should_preempt(seq_group):
@@ -199,9 +204,9 @@ class Scheduler:
         self.stats["total_response_time"] += response_time
         self.stats["request_completion_times"].append(end_time)
         self.stats["response_times"].append(response_time)
-        self.stats["jct_ratios"].append(response_time / total_length)
+        self.stats["jct_ratios"].append(response_time / seq_group.true_length)
         self.stats["peak_age"] = max(self.stats["peak_age"], self.stats["current_age"])
-        self.stats["current_age"] -= total_length
+        self.stats["current_age"] -= seq_group.true_length
 
         # Remove from running sequences
         self.policy.complete_sequence(seq_group)
@@ -222,6 +227,7 @@ class Scheduler:
         for waiting_seq in self.waiting_queue:
             waiting_priority = self.policy.get_priority(self.env.now, waiting_seq, **self.score_params)
             if waiting_priority > running_priority:
+                self.stats["total_preemptions"] += 1
                 return True
 
         return False
@@ -235,12 +241,11 @@ def format_name(policy_class, score_params=None) -> str:
         name += f"_{score_params['hp']}"
     return name
 
-def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None, seed=None):
+def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None, seed=None, sigma=10):
     """Run a simulation with the given policy and parameters."""
     env = simpy.Environment()
     scheduler = Scheduler(env, policy_class, batch_size, token_gen_rate, score_params)
-    generator = RequestGenerator(env, scheduler, arrival_rate, length_distribution=length_distribution, seed=seed)
-
+    generator = RequestGenerator(env, scheduler, arrival_rate, length_distribution=length_distribution, seed=seed, sigma=sigma)
     # Run simulation
     env.run(until=sim_time)
 
@@ -260,6 +265,9 @@ def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, 
     avg_utilization = sum(util for _, util in utilization_samples) / len(utilization_samples) if utilization_samples else 0
 
     policy_name = format_name(policy_class, score_params)
+    with open(f"llm_scheduling_iclr/vllm/dumps/{policy_name}.txt", "w") as f:
+        for val in stats["request_lengths"]:
+            f.write(f"{val}\n")
     return {
         "policy": policy_name,
         "completed_requests": completed,
@@ -269,6 +277,7 @@ def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, 
         "avg_utilization": avg_utilization,
         "detailed_stats": stats,
         "peak_memory": stats["peak_age"],
+        "total_preemptions": stats["total_preemptions"],
     }
 
 
@@ -396,7 +405,7 @@ def plot_results(results_df, metrics=None, experiment_id=None):
     return fig
 
 def run_with_args(args):
-    policy_class, sim_time, arrival_rate, batch_size, token_gen_rate, length_distribution, seed, score_params = args
+    policy_class, sim_time, arrival_rate, batch_size, token_gen_rate, length_distribution, seed, sigma, score_params = args
     return run_simulation(
         policy_class=policy_class,
         sim_time=sim_time,
@@ -405,7 +414,8 @@ def run_with_args(args):
         token_gen_rate=token_gen_rate,
         length_distribution=length_distribution,
         seed=seed,
-        score_params=score_params
+        sigma=sigma,
+        score_params=score_params,
     )
 
 def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experiment_id=None):
@@ -456,6 +466,8 @@ def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experim
         print(f"  Mean response time: {row['mean_response_time']:.2f}")
         print(f"  Average JCT ratio: {row['avg_jct_ratio']:.2f}")
         print(f"  Average utilization: {row['avg_utilization']:.2f}")
+        print(f"  Peak memory: {row['peak_memory']:.2f}")
+        print(f"  Total preemptions: {row['total_preemptions']:.0f}")
     print("=" * 80)
 
 
@@ -467,9 +479,9 @@ if __name__ == "__main__":
     # Define simulation parameters
     sim_params = {
         "sim_time": 20000,         # Total simulation time
-        "arrival_rate": 0.1,      # Mean arrivals per time unit
+        "arrival_rate": 0.5,      # Mean arrivals per time unit
         "batch_size": 1,          # Number of parallel sequences
-        "token_gen_rate": 10,     # Tokens generated per time unit
+        "token_gen_rate": 30,     # Tokens generated per time unit
         "length_distribution": {
             "p1": (0.332, 78, 97),
             "p2": (0.282, 97, 120),
@@ -483,10 +495,11 @@ if __name__ == "__main__":
             "p10": (0.0001, 525, 648),
             "p11": (0.0001, 648, 800)
         },
-        "seed": 42
+        "seed": 42,
+        "sigma": 50
     }
     # Policies to compare
-    policies = [SPRPT, LRPSPRPT, DTPRPT] 
+    policies = [FCFS, SPRPT, LRPSPRPT, DTPRPT] 
 
     raw_experiment(policies, sim_params, experiment_id)
 
