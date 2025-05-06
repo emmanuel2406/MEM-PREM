@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from collections import deque, defaultdict
 from dataclasses import dataclass, field
 import pandas as pd
+from multiprocessing import Pool
 
 
 # Mock classes to simulate vLLM SequenceGroup functionality
@@ -62,7 +63,7 @@ class SequenceGroup:
 
 # Simulation environment
 class RequestGenerator:
-    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None):
+    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None, seed=None):
         self.env = env
         self.scheduler = scheduler
         self.arrival_rate = arrival_rate
@@ -71,22 +72,23 @@ class RequestGenerator:
             "medium": (0.3, 100, 300), # 30% chance, 100-300 tokens
             "long": (0.3, 500, 1000)   # 30% chance, 500-1000 tokens
         }
+        self.random = random.Random(seed)
         self.request_count = 0
         self.env.process(self.generate_requests())
 
     def generate_requests(self):
         while True:
             # Generate next arrival from Poisson process
-            interarrival_time = random.expovariate(self.arrival_rate)
+            interarrival_time = self.random.expovariate(self.arrival_rate)
             yield self.env.timeout(interarrival_time)
             # Generate request length from distribution
-            length_type = random.choices(
+            length_type = self.random.choices(
                 population=list(self.length_distribution.keys()),
                 weights=[dist[0] for dist in self.length_distribution.values()]
             )[0]
 
             dist = self.length_distribution[length_type]
-            length = random.randint(dist[1], dist[2])
+            length = self.random.randint(dist[1], dist[2])
 
             # Create sequence group and submit to scheduler
             request_id = f"req_{self.request_count}"
@@ -233,11 +235,11 @@ def format_name(policy_class, score_params=None) -> str:
         name += f"_{score_params['hp']}"
     return name
 
-def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None):
+def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None, seed=None):
     """Run a simulation with the given policy and parameters."""
     env = simpy.Environment()
     scheduler = Scheduler(env, policy_class, batch_size, token_gen_rate, score_params)
-    generator = RequestGenerator(env, scheduler, arrival_rate, length_distribution=length_distribution)
+    generator = RequestGenerator(env, scheduler, arrival_rate, length_distribution=length_distribution, seed=seed)
 
     # Run simulation
     env.run(until=sim_time)
@@ -379,51 +381,59 @@ def plot_results(results_df, metrics=None, experiment_id=None):
 
     return fig
 
+def run_with_args(args):
+    policy_class, sim_time, arrival_rate, batch_size, token_gen_rate, length_distribution, seed, score_params = args
+    return run_simulation(
+        policy_class=policy_class,
+        sim_time=sim_time,
+        arrival_rate=arrival_rate,
+        batch_size=batch_size,
+        token_gen_rate=token_gen_rate,
+        length_distribution=length_distribution,
+        seed=seed,
+        score_params=score_params
+    )
 
 def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experiment_id=None):
     DTPRPT_types = ["parabola", "hyperbola", "exponential"]
     DTRPRT_hps = [0.7, 0.7, 0.6]
+    policy_runs = []
 
-    # Metrics to compare
-    metrics = ["mean_response_time", "peak_memory", "avg_wait_time", "avg_jct_ratio"]
-
-    # Run comparison
-    all_results = []
-    plt.figure(figsize=(10, 6))
-
+    # Prepare runs for all policies, including DTPRPT variants
     for policy_class in policies:
-        policy_name = policy_class.__name__
-        print(f"Running simulations for {policy_name}...")
-
-        if policy_name == "DTPRPT":
+        if policy_class.__name__ == "DTPRPT":
             for type, hp in zip(DTPRPT_types, DTRPRT_hps):
                 score_params = {"type": type, "hp": hp}
-                result = run_simulation(policy_class, **sim_params, score_params=score_params)
-                all_results.append(result)
-
-                response_times = result["detailed_stats"]["response_times"]
-                plt.hist(response_times, alpha=0.5, bins=20, label=result["policy"])
+                policy_runs.append((policy_class, *sim_params.values(), score_params))
         else:
-            result = run_simulation(policy_class, **sim_params, score_params={})
-            all_results.append(result)
+            policy_runs.append((policy_class, *sim_params.values(), {}))
 
-            response_times = result["detailed_stats"]["response_times"]
-            plt.hist(response_times, alpha=0.5, bins=20, label=result["policy"])
+    # Run all simulations in parallel
+    with Pool(processes=len(policy_runs)) as pool:
+        results = pool.map(run_with_args, policy_runs)
+
+    # All simulations are now complete; we can plot and analyze.
+    metrics = ["mean_response_time", "peak_memory", "avg_wait_time", "avg_jct_ratio"]
+
+    # Plot histogram of response times for each policy
+    plt.figure(figsize=(10, 6))
+    for result in results:
+        response_times = result["detailed_stats"]["response_times"]
+        plt.hist(response_times, alpha=0.5, bins=20, label=result["policy"])
+
     plt.legend()
     plt.title("Response Time Distributions")
     plt.xlabel("Response Time")
     plt.ylabel("Frequency")
     plt.savefig(f"llm_scheduling_iclr/experiments/response_time_distributions_{experiment_id}.png")
 
-    results_df = pd.DataFrame(all_results)
-    print(results_df)
-
-    # Plot results
+    results_df = pd.DataFrame(results)
+    # Plot aggregate metrics
     plot_results(results_df, metrics, experiment_id)
 
     # Print out a detailed summary report
-    print("\nDetailed Performance Summary:")
-    print("="*80)
+    print(f"Detailed Performance Summary: for Experiment ID {experiment_id}")
+    print("=" * 80)
     for index, row in results_df.iterrows():
         policy = row["policy"]
         print(f"\n{policy}:")
@@ -432,7 +442,7 @@ def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experim
         print(f"  Mean response time: {row['mean_response_time']:.2f}")
         print(f"  Average JCT ratio: {row['avg_jct_ratio']:.2f}")
         print(f"  Average utilization: {row['avg_utilization']:.2f}")
-    print("="*80)
+    print("=" * 80)
 
 
 
@@ -443,25 +453,28 @@ if __name__ == "__main__":
     # Define simulation parameters
     sim_params = {
         "sim_time": 10000,         # Total simulation time
-        "arrival_rate": 0.5,      # Mean arrivals per time unit
+        "arrival_rate": 0.8,      # Mean arrivals per time unit
         "batch_size": 1,          # Number of parallel sequences
         "token_gen_rate": 1,     # Tokens generated per time unit
         "length_distribution": {
-            "p1": (0.482, 51, 102),
-            "p2": (0.405, 102, 153),
-            "p3": (0.092, 153, 204),
-            "p4": (0.01, 204, 256),
-            "p5": (0.003, 256, 307),
-            "p6": (0.004, 307, 358),
-            "p7": (0.002, 358, 409),
-            "p8": (0.002, 409, 460),
-            "p9": (0.001, 460, 512)
-        }
+            "p1": (0.332, 78, 97),
+            "p2": (0.282, 97, 120),
+            "p3": (0.245, 120, 148),
+            "p4": (0.082, 148, 183),
+            "p5": (0.032, 183, 226),
+            "p6": (0.013, 226, 279),
+            "p7": (0.0005, 279, 344),
+            "p8": (0.0005, 344, 425),
+            "p9": (0.0003, 425, 525),
+            "p10": (0.0001, 525, 648),
+            "p11": (0.0001, 648, 800)
+        },
+        "seed": 42
     }
     # Policies to compare
-    policies = [SPRPT, LRPSPRPT, DTPRPT] 
+    # policies = [SPRPT, LRPSPRPT, DTPRPT] 
 
-    raw_experiment(policies, sim_params, experiment_id)
+    # raw_experiment(policies, sim_params, experiment_id)
 
-    # hyperparams = np.arange(0.0, 1.05, 0.05).round(2).tolist()
-    # response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)
+    hyperparams = np.arange(0.0, 1.05, 0.05).round(2).tolist()
+    response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)

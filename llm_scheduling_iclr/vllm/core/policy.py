@@ -52,12 +52,15 @@ class Policy:
         if seq_id in self.preempted_sequences:
             del self.preempted_sequences[seq_id]
 
-    def get_age_ratio(self) -> float:
+    def get_age_ratio(self, cur_group: SequenceGroup, soap_compliant: bool) -> float:
         """
         Calculate ratio of total sequence ages to age capacity.
         This represents how much memory resource is currently used by
         all active and preempted sequences.
         """
+        if soap_compliant:
+            return cur_group.get_seqs()[0].data.get_num_computed_tokens() / self.age_capacity
+    
         # Calculate sum of ages for all active and preempted sequences
         total_age = 0.0
         # Add ages of active sequences
@@ -200,9 +203,10 @@ class DTPRPT(Policy):
         seq_group: SequenceGroup,
         type: str = 'parabola',
         hp: float = 0.8, #hyperparameter in type
+        soap_compliant: bool = False,
         **kwargs
     ) -> float:
-        m0 = self.get_age_ratio()
+        m0 =  self.get_age_ratio(cur_group=seq_group, soap_compliant=soap_compliant)
         if type == 'parabola':
             """
                 hp represents the fixed point of (hp, 0.8) on the parabola to tune the shape of the curve

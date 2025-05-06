@@ -1,0 +1,39 @@
+INFO 05-05 21:40:48 [__init__.py:239] Automatically detected platform cuda.
+Detailed Performance Summary: for Experiment ID 413
+================================================================================
+
+SPRPT:
+  Completed requests: 256
+  Average wait time: 633.98
+  Mean response time: 708.62
+  Average JCT ratio: 9.07
+  Average utilization: 0.99
+
+LRPSPRPT:
+  Completed requests: 256
+  Average wait time: 633.98
+  Mean response time: 708.62
+  Average JCT ratio: 9.07
+  Average utilization: 0.99
+
+DTPRPT(parabola)_0.7:
+  Completed requests: 256
+  Average wait time: 633.98
+  Mean response time: 708.62
+  Average JCT ratio: 9.07
+  Average utilization: 0.99
+
+DTPRPT(hyperbola)_0.7:
+  Completed requests: 256
+  Average wait time: 633.98
+  Mean response time: 708.62
+  Average JCT ratio: 9.07
+  Average utilization: 0.99
+
+DTPRPT(exponential)_0.6:
+  Completed requests: 256
+  Average wait time: 633.98
+  Mean response time: 708.62
+  Average JCT ratio: 9.07
+  Average utilization: 0.99
+================================================================================
