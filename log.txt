@@ -1,39 +1,58 @@
-INFO 05-05 21:40:48 [__init__.py:239] Automatically detected platform cuda.
-Detailed Performance Summary: for Experiment ID 413
+INFO 05-06 01:54:58 [__init__.py:239] Automatically detected platform cuda.
+Detailed Performance Summary: for Experiment ID 117
 ================================================================================
 
-SPRPT:
-  Completed requests: 256
-  Average wait time: 633.98
-  Mean response time: 708.62
-  Average JCT ratio: 9.07
-  Average utilization: 0.99
+FCFS:
+  Completed requests: 1619
+  Average wait time: 9002.51
+  Mean response time: 9003.75
+  Average JCT ratio: 81.25
+  Average utilization: 1.00
+  Peak memory: 687
+  Total preemptions: 0
 
-LRPSPRPT:
-  Completed requests: 256
-  Average wait time: 633.98
-  Mean response time: 708.62
-  Average JCT ratio: 9.07
-  Average utilization: 0.99
+SPRPT:
+  Completed requests: 1777
+  Average wait time: 253.73
+  Mean response time: 238.78
+  Average JCT ratio: 2.36
+  Average utilization: 1.00
+  Peak memory: 527
+  Total preemptions: 88
+
+LSPRPT:
+  Completed requests: 1777
+  Average wait time: 242.75
+  Mean response time: 238.72
+  Average JCT ratio: 2.36
+  Average utilization: 1.00
+  Peak memory: 527
+  Total preemptions: 48
 
 DTPRPT(parabola)_0.7:
-  Completed requests: 256
-  Average wait time: 633.98
-  Mean response time: 708.62
-  Average JCT ratio: 9.07
-  Average utilization: 0.99
+  Completed requests: 1777
+  Average wait time: 253.73
+  Mean response time: 238.78
+  Average JCT ratio: 2.36
+  Average utilization: 1.00
+  Peak memory: 527
+  Total preemptions: 88
 
 DTPRPT(hyperbola)_0.7:
-  Completed requests: 256
-  Average wait time: 633.98
-  Mean response time: 708.62
-  Average JCT ratio: 9.07
-  Average utilization: 0.99
+  Completed requests: 1777
+  Average wait time: 253.73
+  Mean response time: 238.78
+  Average JCT ratio: 2.36
+  Average utilization: 1.00
+  Peak memory: 527
+  Total preemptions: 88
 
 DTPRPT(exponential)_0.6:
-  Completed requests: 256
-  Average wait time: 633.98
-  Mean response time: 708.62
-  Average JCT ratio: 9.07
-  Average utilization: 0.99
+  Completed requests: 1777
+  Average wait time: 252.13
+  Mean response time: 238.78
+  Average JCT ratio: 2.36
+  Average utilization: 1.00
+  Peak memory: 527
+  Total preemptions: 86
 ================================================================================

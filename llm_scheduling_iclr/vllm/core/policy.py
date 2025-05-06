@@ -113,7 +113,9 @@ class SJF(Policy):
         return -seq_group.sampling_params.remain_length[0]
 
 class LSPRPT(Policy):
-
+    """
+    Limited Shorest Preemption Remaining Processing Time
+    """
     def get_priority(
         self,
         now: float,
@@ -159,9 +161,6 @@ class RPSPRPT(Policy):
         return waiting_priority - running_priority
 
 class LRPSPRPT(Policy):
-    """
-    Limited Preemption Shorest Remaining Processing Time
-    """
     def get_priority(
         self,
         now: float,
@@ -226,29 +225,13 @@ class DTPRPT(Policy):
             """
             t_limit = (1 - math.exp(-hp + hp * m0)) / (1 - math.exp(-hp))
 
-        predicted_initial_len = seq_group.sampling_params.remain_length[0]
+        predicted_len = seq_group.sampling_params.remain_length[0]
         generated_len = seq_group.get_seqs()[0].data.get_num_computed_tokens()
-        if generated_len > t_limit*predicted_initial_len:
+        if generated_len > t_limit*predicted_len:
             score = sys.maxsize
         else:
-            if generated_len < len(seq_group.sampling_params.remain_length):
-                predicted_remaining_len = seq_group.sampling_params.remain_length[generated_len]
-            else:
-                predicted_remaining_len = seq_group.sampling_params.remain_length[-1]
-            score = -predicted_remaining_len
+            score = - predicted_len + generated_len
         return score
-
-    def compare(self, waiting_seq: SequenceGroup, running_seq: SequenceGroup, now: float) -> int:
-        """
-        Compare two sequences based on their priority. Returns:
-        > 0 if waiting_seq has higher priority than running_seq,
-        < 0 if running_seq has higher priority than waiting_seq,
-        0 if both have the same priority.
-        """
-        waiting_priority = self.get_priority(now, waiting_seq)
-        running_priority = self.get_priority(now, running_seq)
-
-        return waiting_priority - running_priority
 
 class PolicyFactory:
 

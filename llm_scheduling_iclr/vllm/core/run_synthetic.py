@@ -32,7 +32,7 @@ class SequenceData:
         return self.computed_tokens
     
     def update_computed_tokens(self, tokens: int) -> None:
-        self.computed_tokens = tokens
+        self.computed_tokens += tokens
 
 
 @dataclass
@@ -64,7 +64,7 @@ class SequenceGroup:
 
 # Simulation environment
 class RequestGenerator:
-    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None, seed=None, sigma=10, token_gen_rate=4):
+    def __init__(self, env, scheduler, arrival_rate=1.0, length_distribution=None, seed=None, sigma=0.5, token_gen_rate=4):
         self.env = env
         self.scheduler = scheduler
         self.arrival_rate = arrival_rate
@@ -93,7 +93,7 @@ class RequestGenerator:
 
             dist = self.length_distribution[length_type]
             true_length = self.random.randint(dist[1], dist[2])
-            predicted_length = max(0, int(true_length + self.sigma * self.np_random.standard_normal()))
+            predicted_length = max(0, int(true_length + true_length * self.sigma * self.np_random.standard_normal()))
 
             # Create sequence group and submit to scheduler
             request_id = f"req_{self.request_count}"
@@ -179,7 +179,7 @@ class Scheduler:
             # Update token count
             tokens_to_generate = min(self.token_gen_rate, true_remain_length - current_tokens)
             current_tokens += tokens_to_generate
-            seq_group.update_tokens(current_tokens)
+            seq_group.update_tokens(tokens_to_generate)
 
             # Simulate token generation time
             yield self.env.timeout(1.0)  # Each step takes 1 time unit
@@ -241,7 +241,7 @@ def format_name(policy_class, score_params=None) -> str:
         name += f"_{score_params['hp']}"
     return name
 
-def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None, seed=None, sigma=10):
+def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, length_distribution=None, token_gen_rate=4, score_params=None, seed=None, sigma=0.5):
     """Run a simulation with the given policy and parameters."""
     env = simpy.Environment()
     scheduler = Scheduler(env, policy_class, batch_size, token_gen_rate, score_params)
@@ -479,10 +479,10 @@ if __name__ == "__main__":
     experiment_id = random.randint(100,999)
     # Define simulation parameters
     sim_params = {
-        "sim_time": 50000,         # Total simulation time
-        "arrival_rate": 0.05,      # Mean arrivals per time unit
+        "sim_time": 20000,         # Total simulation time
+        "arrival_rate": 0.8,      # Mean arrivals per time unit
         "batch_size": 1,          # Number of parallel sequences
-        "token_gen_rate": 5,     # Tokens generated per time unit
+        "token_gen_rate": 10,     # Tokens generated per time unit
         "length_distribution": {
             "p1": (0.332, 78, 97),
             "p2": (0.282, 97, 120),
@@ -497,10 +497,10 @@ if __name__ == "__main__":
             "p11": (0.0001, 648, 800)
         },
         "seed": 42,
-        "sigma": 50
+        "sigma": 0.5
     }
     # Policies to compare
-    policies = [FCFS, SPRPT, LRPSPRPT, DTPRPT] 
+    policies = [FCFS, SPRPT, LSPRPT, DTPRPT]  
 
     raw_experiment(policies, sim_params, experiment_id)
 
