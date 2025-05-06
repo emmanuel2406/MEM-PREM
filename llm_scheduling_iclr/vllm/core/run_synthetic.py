@@ -328,19 +328,33 @@ def plot_response_memory(results_df, experiment_id=None, x_label=None, type = No
 
     return fig
 
+
+def run_hp_experiment(args):
+    policy, sim_params, type, hp, experiment_id = args
+    score_params = {"type": type, "hp": hp}
+    result = run_simulation(policy, **sim_params, score_params=score_params)
+    result["hp"] = hp
+    result["type"] = type
+    return result
+
+
 def response_memory_experiment(policy: Policy, sim_params: Dict[str, float], hyperparams: List[float], experiment_id=None):
     DTPRPT_types = ["parabola", "hyperbola", "exponential"]
 
     if policy == DTPRPT:
-        for type in DTPRPT_types:
-            type_results = []
-            score_params = {"type": type}
-            for hp in hyperparams:
-                score_params["hp"] = hp
-                result = run_simulation(policy, **sim_params, score_params=score_params)
-                result["hp"] = hp
-                type_results.append(result)
+        all_jobs = [
+            (policy, sim_params, type, hp, experiment_id)
+            for type in DTPRPT_types
+            for hp in hyperparams
+        ]
 
+        N_CPUS = 32 # tune this to your machine
+        with Pool(processes=min(len(all_jobs), N_CPUS)) as pool:
+            all_results = pool.map(run_hp_experiment, all_jobs)
+
+        # Group by type and plot
+        for type in DTPRPT_types:
+            type_results = [res for res in all_results if res["type"] == type]
             type_df = pd.DataFrame(type_results)
             plot_response_memory(type_df, experiment_id=experiment_id, x_label="h", type=type)
     else:
@@ -452,10 +466,10 @@ if __name__ == "__main__":
     experiment_id = random.randint(100,999)
     # Define simulation parameters
     sim_params = {
-        "sim_time": 10000,         # Total simulation time
-        "arrival_rate": 0.8,      # Mean arrivals per time unit
+        "sim_time": 20000,         # Total simulation time
+        "arrival_rate": 0.1,      # Mean arrivals per time unit
         "batch_size": 1,          # Number of parallel sequences
-        "token_gen_rate": 1,     # Tokens generated per time unit
+        "token_gen_rate": 10,     # Tokens generated per time unit
         "length_distribution": {
             "p1": (0.332, 78, 97),
             "p2": (0.282, 97, 120),
@@ -472,9 +486,9 @@ if __name__ == "__main__":
         "seed": 42
     }
     # Policies to compare
-    # policies = [SPRPT, LRPSPRPT, DTPRPT] 
+    policies = [SPRPT, LRPSPRPT, DTPRPT] 
 
-    # raw_experiment(policies, sim_params, experiment_id)
+    raw_experiment(policies, sim_params, experiment_id)
 
-    hyperparams = np.arange(0.0, 1.05, 0.05).round(2).tolist()
-    response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)
+    # hyperparams = np.arange(0.0, 1.05, 0.05).round(2).tolist()
+    # response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)
