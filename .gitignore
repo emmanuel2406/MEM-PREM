@@ -1,6 +1,7 @@
 .myenv
 vllm
 experiments
+logs
 
 
 alpaca_data_cleaned.json

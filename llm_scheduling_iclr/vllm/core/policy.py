@@ -1,10 +1,10 @@
 from collections import deque
 from typing import Deque, Dict
 
-from vllm.sequence import SequenceGroup
+# from vllm.sequence import SequenceGroup
+from simulation import SequenceGroup
 import sys
 import math
-import time
 
 
 class Policy:
@@ -120,7 +120,7 @@ class LSPRPT(Policy):
         self,
         now: float,
         seq_group: SequenceGroup,
-        t_limit: float = 0.5,
+        t_limit: float = 0.8,
     ) -> float:
         #return seq_group.get_seqs()[0].expected_out_len
         #higher score means higher priority
@@ -210,7 +210,7 @@ class DTPRPT(Policy):
             """
                 hp represents the fixed point of (hp, 0.8) on the parabola to tune the shape of the curve
             """
-            c1 = (hp - 0.2) / (hp ** 2 - hp)
+            c1 = (hp - 0.2) / (hp ** 2 - hp + 1e-8)
             c2 = -1 - c1
             t_limit = c1 * m0 ** 2 + c2 * m0 + 1
         elif type == 'hyperbola':
@@ -218,12 +218,12 @@ class DTPRPT(Policy):
                 hp represents the fixed point of (hp, 0.8) on the hyperbola to tune the shape of the curve
             """
             c = 0.2 * hp - 0.2
-            t_limit = c / (m0 - 1) + 1
+            t_limit = c / (m0 - 1 + 1e-8) + 1
         elif type == 'exponential':
             """
                 hp represents the scaling factor in the exponential
             """
-            t_limit = (1 - math.exp(-hp + hp * m0)) / (1 - math.exp(-hp))
+            t_limit = (1 - math.exp(-hp + hp * m0)) / (1 - math.exp(-hp) + 1e-8)
 
         predicted_len = seq_group.sampling_params.remain_length[0]
         generated_len = seq_group.get_seqs()[0].data.get_num_computed_tokens()
