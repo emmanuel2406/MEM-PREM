@@ -1,2 +1,1 @@
-INFO 05-07 02:11:10 [__init__.py:239] Automatically detected platform cuda.
-Experiment ID: 171
+Experiment ID: 227

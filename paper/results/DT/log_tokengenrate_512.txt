@@ -1,0 +1,58 @@
+BURST WORKLOAD NO DDetailed Performance Summary: for Experiment ID 524
+================================================================================
+
+FCFS:
+  Completed requests: 24805
+  Average wait time: 19370.714
+  Mean response time: 19372.295
+  Average JCT ratio: 281.088
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+
+SPRPT:
+  Completed requests: 24805
+  Average wait time: 16017.265
+  Mean response time: 16018.846
+  Average JCT ratio: 57.835
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+
+LSPRPT:
+  Completed requests: 24805
+  Average wait time: 16017.265
+  Mean response time: 16018.846
+  Average JCT ratio: 57.835
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+
+DTPRPT(exponential)_0.3:
+  Completed requests: 24805
+  Average wait time: 16017.265
+  Mean response time: 16018.846
+  Average JCT ratio: 57.835
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+
+DTPRPT(hyperbola)_0.2:
+  Completed requests: 24805
+  Average wait time: 16017.265
+  Mean response time: 16018.846
+  Average JCT ratio: 57.835
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+
+DTPRPT(parabola)_0.2:
+  Completed requests: 24805
+  Average wait time: 16017.265
+  Mean response time: 16018.846
+  Average JCT ratio: 57.835
+  Average utilization: 1.00
+  Peak memory: 6680
+  Total preemptions: 0
+================================================================================
+==========

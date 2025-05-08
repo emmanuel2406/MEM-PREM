@@ -58,7 +58,7 @@ class SequenceGroup:
 
 # Simulation environment
 class RequestGenerator:
-    def __init__(self, env, scheduler, arrival_rate=1.0, job_service_distribution="realistic", length_distribution=None, seed=None, sigma=0.5, token_gen_rate=4):
+    def __init__(self, env, scheduler, arrival_rate=1.0, job_service_distribution="realistic-normal", length_distribution=None, seed=None, sigma=0.5, token_gen_rate=4):
         self.env = env
         self.scheduler = scheduler
         self.arrival_rate = arrival_rate
@@ -80,7 +80,7 @@ class RequestGenerator:
             # Generate next arrival from Poisson process
             interarrival_time = self.random.expovariate(self.arrival_rate)
             if self.env.now + interarrival_time > self.scheduler.sim_time:
-                break
+                return
             yield self.env.timeout(interarrival_time)
 
             if self.job_service_distribution == "realistic-normal":
@@ -145,7 +145,7 @@ class Scheduler:
         self.waiting_queue.append(seq_group)
         
     def run(self):
-        while True:
+        while self.env.now < self.sim_time or self.waiting_queue or self.running_sequences:
             # Sort waiting queue by priority
             self.waiting_queue = self.policy.sort_by_priority(self.env.now, self.waiting_queue)
             

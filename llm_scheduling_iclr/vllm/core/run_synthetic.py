@@ -13,7 +13,10 @@ import pandas as pd
 from multiprocessing import Pool
 import argparse
 from simulation import Scheduler, RequestGenerator
+from tqdm import tqdm
 
+
+N_CPUS = 60 # tune this to your machine
 
 def format_name(policy_class, score_params=None) -> str:
     name = policy_class.__name__
@@ -49,10 +52,10 @@ def run_simulation(policy_class, sim_time=1000, arrival_rate=0.5, batch_size=4, 
     avg_utilization = sum(util for _, util in utilization_samples) / len(utilization_samples) if utilization_samples else 0
 
     policy_name = format_name(policy_class, score_params)
-    if True:
-        with open(f"llm_scheduling_iclr/vllm/dumps/{policy_name}.txt", "w") as f:
-            for val in stats["request_lengths"]:
-                f.write(f"{val}\n")
+    # if False:
+    #     with open(f"llm_scheduling_iclr/vllm/dumps/{policy_name}.txt", "w") as f:
+    #         for val in stats["request_lengths"]:
+    #             f.write(f"{val}\n")
     return {
         "policy": policy_name,
         "completed_requests": completed,
@@ -93,19 +96,20 @@ def compare_policies(policies, sim_params=None, metrics=None):
 
 def plot_response_memory(results_df, experiment_id=None, x_label=None, type = None):
     # Set up the figure
+    results_df = results_df.sort_values(by="hp")
     fig, ax1 = plt.subplots(figsize=(10, 6))
     response_times = results_df["mean_response_time"].tolist()
     memory = results_df["peak_memory"].tolist()
     hp = results_df["hp"].tolist()
 
    # Plot mean response time on left y-axis
-    ax1.plot(hp, response_times, color='tab:blue', marker='o', label='Mean Response Time')
+    ax1.plot(hp, response_times, color='tab:blue', marker='o', label='Mean Response Time', alpha=0.3)
     ax1.set_ylabel('Mean Response Time', color='tab:blue')
     ax1.tick_params(axis='y', labelcolor='tab:blue')
 
     # Create secondary y-axis for peak memory
     ax2 = ax1.twinx()
-    ax2.plot(hp, memory, color='tab:green', marker='s', label='Peak Memory')
+    ax2.plot(hp, memory, color='tab:green', marker='s', label='Peak Memory',  alpha=0.3)
     ax2.set_ylabel('Peak Memory', color='tab:green')
     ax2.tick_params(axis='y', labelcolor='tab:green')
 
@@ -141,10 +145,11 @@ def response_memory_experiment(policy: Policy, sim_params: Dict[str, float], hyp
             for type in DTPRPT_types
             for hp in hyperparams
         ]
-
-        N_CPUS = 32 # tune this to your machine
         with Pool(processes=min(len(all_jobs), N_CPUS)) as pool:
-            all_results = pool.map(run_hp_experiment, all_jobs)
+            all_results = []
+            for result in tqdm(pool.imap_unordered(run_hp_experiment, all_jobs), total=len(all_jobs)):
+                # print(f"✔️ Finished: DTPRPT({result['type']})_{result['hp']}")
+                all_results.append(result)
 
         print(f"\nDetailed Performance Summary: for Experiment ID {experiment_id}")
         print("="*80)
@@ -226,7 +231,7 @@ def run_with_args(args):
 
 def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experiment_id=None, plot=True):
     DTPRPT_types = ["parabola", "hyperbola", "exponential"]
-    DTRPRT_hps = [0.7, 0.7, 0.6]
+    DTRPRT_hps = [0.6, 0.2, 0.3]
     policy_runs = []
 
     # Prepare runs for all policies, including DTPRPT variants
@@ -239,8 +244,11 @@ def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experim
             policy_runs.append((policy_class, *sim_params.values(), {}))
 
     # Run all simulations in parallel
-    with Pool(processes=len(policy_runs)) as pool:
-        results = pool.map(run_with_args, policy_runs)
+    with Pool(processes=min(len(policy_runs), N_CPUS)) as pool:
+        results = []
+        for result in tqdm(pool.imap_unordered(run_with_args, policy_runs), total=len(policy_runs)):
+            # print(f"✔️ Finished: {result['policy']}")
+            results.append(result)
 
     results_df = pd.DataFrame(results)
 
@@ -280,39 +288,84 @@ def raw_experiment(policies: List[Policy], sim_params: Dict[str, float], experim
 
 
 
+class WorkloadPreset:
+    def __init__(self, sim_time, arrival_rate, token_gen_rate, job_service_distribution = None, sigma=None):
+        self.sim_time = sim_time
+        self.arrival_rate = arrival_rate
+        self.token_gen_rate = token_gen_rate
+        self.job_service_distribution = job_service_distribution
+        self.sigma = sigma
+
+    def get_sim_params(self):
+        return { 
+            "sim_time": self.sim_time,         # Total simulation time
+            "arrival_rate": self.arrival_rate,      # Mean arrivals per time unit
+            "batch_size": 1,          # Number of parallel sequences
+            "token_gen_rate": self.token_gen_rate,     # Tokens generated per time unit
+            "job_service_distribution": self.job_service_distribution or "exponential-exponential",
+            "length_distribution": {
+                "p1": (0.332, 78, 97),
+                "p2": (0.282, 97, 120),
+                "p3": (0.245, 120, 148),
+                "p4": (0.082, 148, 183),
+                "p5": (0.032, 183, 226),
+                "p6": (0.013, 226, 279),
+                "p7": (0.0005, 279, 344),
+                "p8": (0.0005, 344, 425),
+                "p9": (0.0003, 425, 525),
+                "p10": (0.0001, 525, 648),
+                "p11": (0.0001, 648, 800)
+            },
+            "seed": 42,
+            "sigma": self.sigma
+        }
+
+burst_workload = WorkloadPreset(
+    sim_time=100,
+    arrival_rate=100,
+    token_gen_rate=256,
+    job_service_distribution="exponential-exponential"
+)
+
+poisson_workload = WorkloadPreset(
+    sim_time=25000,
+    arrival_rate=0.6,
+    token_gen_rate=256,
+    job_service_distribution="exponential-exponential"
+) 
+
+natural_workload = WorkloadPreset(
+    sim_time=250000,
+    arrival_rate=0.6,
+    token_gen_rate=256,
+    job_service_distribution="realistic-normal",
+    sigma=0.4
+)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--sigma', type=float, default=0.4, help='Sigma parameter for prediction noise')
-    parser.add_argument('--token_gen_rate', type=int, default=20, help='Tokens generated per time unit')
+    parser.add_argument('--token_gen_rate', type=int, default=256, help='Tokens generated per time unit')
     parser.add_argument('--arrival_rate', type=float, default=0.8, help='Arrival rate of poisson process')
     args = parser.parse_args()
 
+
     experiment_id = random.randint(100,999)
     print(f"Experiment ID: {experiment_id}")
-    # Define simulation parameters
-    sim_params = {
-        "sim_time": 60000,         # Total simulation time
-        "arrival_rate": args.arrival_rate,      # Mean arrivals per time unit
-        "batch_size": 1,          # Number of parallel sequences
-        "token_gen_rate": args.token_gen_rate,     # Tokens generated per time unit
-        "job_service_distribution": "exponential-perfect",
-        "length_distribution": {
-            "p1": (0.332, 78, 97),
-            "p2": (0.282, 97, 120),
-            "p3": (0.245, 120, 148),
-            "p4": (0.082, 148, 183),
-            "p5": (0.032, 183, 226),
-            "p6": (0.013, 226, 279),
-            "p7": (0.0005, 279, 344),
-            "p8": (0.0005, 344, 425),
-            "p9": (0.0003, 425, 525),
-            "p10": (0.0001, 525, 648),
-            "p11": (0.0001, 648, 800)
-        },
-        "seed": 42,
-        "sigma": args.sigma
-    }
+
+    # sim_params = WorkloadPreset(
+    #     sim_time=100000,
+    #     arrival_rate=args.arrival_rate,
+    #     token_gen_rate=args.token_gen_rate,
+    #     sigma=args.sigma
+    # ).get_sim_params()
+
+    workload = natural_workload
+    # workload.sigma = args.sigma
+    workload.token_gen_rate = args.token_gen_rate
+    workload.arrival_rate = args.arrival_rate
+    sim_params = workload.get_sim_params()
+
     # Policies to compare
     policies = [FCFS, SPRPT, LSPRPT, DTPRPT]  
 

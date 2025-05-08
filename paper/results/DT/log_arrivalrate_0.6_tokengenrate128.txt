@@ -1,0 +1,59 @@
+WIN
+Experiment ID: 614
+Detailed Performance Summary: for Experiment ID 614
+================================================================================
+
+FCFS:
+  Completed requests: 14792
+  Average wait time: 15.069
+  Mean response time: 16.635
+  Average JCT ratio: 0.729
+  Average utilization: 0.89
+  Peak memory: 1189
+  Total preemptions: 0
+
+SPRPT:
+  Completed requests: 14792
+  Average wait time: 17.769
+  Mean response time: 10.767
+  Average JCT ratio: 0.127
+  Average utilization: 0.91
+  Peak memory: 1476
+  Total preemptions: 2830
+
+LSPRPT:
+  Completed requests: 14792
+  Average wait time: 17.557
+  Mean response time: 10.753
+  Average JCT ratio: 0.128
+  Average utilization: 0.90
+  Peak memory: 1471
+  Total preemptions: 2610
+
+DTPRPT(parabola)_0.2:
+  Completed requests: 14792
+  Average wait time: 12.878
+  Mean response time: 10.483
+  Average JCT ratio: 0.134
+  Average utilization: 0.90
+  Peak memory: 1189
+  Total preemptions: 1601
+
+DTPRPT(exponential)_0.3:
+  Completed requests: 14792
+  Average wait time: 12.932
+  Mean response time: 10.494
+  Average JCT ratio: 0.133
+  Average utilization: 0.90
+  Peak memory: 1189
+  Total preemptions: 1637
+
+DTPRPT(hyperbola)_0.2:
+  Completed requests: 14792
+  Average wait time: 21.105
+  Mean response time: 12.468
+  Average JCT ratio: 0.262
+  Average utilization: 0.91
+  Peak memory: 5207
+  Total preemptions: 3189
+================================================================================

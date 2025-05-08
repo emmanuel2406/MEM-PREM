@@ -1,0 +1,59 @@
+WIN
+Experiment ID: 556
+Detailed Performance Summary: for Experiment ID 556
+================================================================================
+
+SPRPT:
+  Completed requests: 19784
+  Average wait time: 1662.692
+  Mean response time: 1628.542
+  Average JCT ratio: 7.133
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 2092
+
+FCFS:
+  Completed requests: 19784
+  Average wait time: 2986.788
+  Mean response time: 2988.356
+  Average JCT ratio: 138.954
+  Average utilization: 1.00
+  Peak memory: 1189
+  Total preemptions: 0
+
+LSPRPT:
+  Completed requests: 19784
+  Average wait time: 1658.172
+  Mean response time: 1628.528
+  Average JCT ratio: 7.133
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 1796
+
+DTPRPT(hyperbola)_0.2:
+  Completed requests: 19784
+  Average wait time: 1660.131
+  Mean response time: 1628.537
+  Average JCT ratio: 7.133
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 2041
+
+DTPRPT(parabola)_0.2:
+  Completed requests: 19784
+  Average wait time: 1648.437
+  Mean response time: 1628.468
+  Average JCT ratio: 7.136
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 932
+
+DTPRPT(exponential)_0.3:
+  Completed requests: 19784
+  Average wait time: 1650.649
+  Mean response time: 1628.475
+  Average JCT ratio: 7.136
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 1052
+================================================================================

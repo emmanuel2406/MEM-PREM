@@ -6,13 +6,14 @@ from simulation import SequenceGroup
 import sys
 import math
 
+AGE_CAPACITY = 512
 
 class Policy:
     def __init__(self):
         # Initialize tracking variables
         self.active_sequences: Dict[str, SequenceGroup] = {}  # Currently running sequences
         self.preempted_sequences: Dict[str, SequenceGroup] = {}  # Preempted but not completed sequences
-        self.age_capacity = 512  # Maximum sum of token ages threshold (configurable)
+        self.age_capacity = AGE_CAPACITY  # Maximum sum of token ages threshold (configurable)
 
     def get_priority(
         self,
@@ -217,7 +218,7 @@ class DTPRPT(Policy):
             """
                 hp represents the fixed point of (hp, 0.8) on the hyperbola to tune the shape of the curve
             """
-            c = 0.2 * hp - 0.2
+            c = 0.2 - 0.2 * hp
             t_limit = c / (m0 - 1 + 1e-8) + 1
         elif type == 'exponential':
             """

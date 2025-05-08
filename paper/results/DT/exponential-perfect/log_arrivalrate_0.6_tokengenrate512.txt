@@ -1,0 +1,58 @@
+Experiment ID: 953
+Detailed Performance Summary: for Experiment ID 953
+================================================================================
+
+FCFS:
+  Completed requests: 149732
+  Average wait time: 1.255
+  Mean response time: 2.255
+  Average JCT ratio: 0.020
+  Average utilization: 0.60
+  Peak memory: 784
+  Total preemptions: 0
+
+SPRPT:
+  Completed requests: 149732
+  Average wait time: 1.376
+  Mean response time: 2.291
+  Average JCT ratio: 0.020
+  Average utilization: 0.61
+  Peak memory: 894
+  Total preemptions: 3859
+
+LSPRPT:
+  Completed requests: 149732
+  Average wait time: 1.368
+  Mean response time: 2.289
+  Average JCT ratio: 0.020
+  Average utilization: 0.60
+  Peak memory: 894
+  Total preemptions: 3499
+
+DTPRPT(parabola)_0.6:
+  Completed requests: 149732
+  Average wait time: 1.376
+  Mean response time: 2.291
+  Average JCT ratio: 0.020
+  Average utilization: 0.61
+  Peak memory: 784
+  Total preemptions: 3833
+
+DTPRPT(hyperbola)_0.2:
+  Completed requests: 149732
+  Average wait time: 1.363
+  Mean response time: 2.287
+  Average JCT ratio: 0.020
+  Average utilization: 0.60
+  Peak memory: 870
+  Total preemptions: 3341
+
+DTPRPT(exponential)_0.3:
+  Completed requests: 149732
+  Average wait time: 1.354
+  Mean response time: 2.284
+  Average JCT ratio: 0.020
+  Average utilization: 0.60
+  Peak memory: 784
+  Total preemptions: 3114
+================================================================================
