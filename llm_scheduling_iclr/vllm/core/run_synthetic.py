@@ -360,16 +360,16 @@ if __name__ == "__main__":
     #     sigma=args.sigma
     # ).get_sim_params()
 
-    workload = natural_workload
+    workload = poisson_workload
     # workload.sigma = args.sigma
-    workload.token_gen_rate = args.token_gen_rate
-    workload.arrival_rate = args.arrival_rate
+    # workload.token_gen_rate = args.token_gen_rate
+    # workload.arrival_rate = args.arrival_rate
     sim_params = workload.get_sim_params()
 
     # Policies to compare
-    policies = [FCFS, SPRPT, LSPRPT, DTPRPT]  
+    # policies = [FCFS, SPRPT, LSPRPT, DTPRPT]  
 
-    raw_experiment(policies, sim_params, experiment_id, plot=False)
+    # raw_experiment(policies, sim_params, experiment_id, plot=False)
 
-    # hyperparams = np.arange(0.05, 1.05, 0.05).round(2).tolist()
-    # response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)
+    hyperparams = np.arange(0.05, 1.05, 0.05).round(2).tolist()
+    response_memory_experiment(DTPRPT, sim_params=sim_params, experiment_id=experiment_id, hyperparams=hyperparams)
