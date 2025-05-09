@@ -177,10 +177,11 @@ class Scheduler:
     
     def start_sequence(self, seq_group):
         # Calculate how long the request has been waiting
-        wait_time = self.env.now - seq_group.metrics.arrival_time
-        self.stats["total_wait_time"] += wait_time
-        self.stats["wait_times"].append(wait_time)
-        self.stats["request_lengths"].append(seq_group.true_length)
+        if seq_group.get_seqs()[0].data.get_num_computed_tokens() == 0:
+            wait_time = self.env.now - seq_group.metrics.arrival_time
+            self.stats["total_wait_time"] += wait_time
+            self.stats["wait_times"].append(wait_time)
+            self.stats["request_lengths"].append(seq_group.true_length)
 
         # Add to running sequences and track with policy
         process = self.env.process(self.process_sequence(seq_group))
