@@ -3,7 +3,7 @@
 SECONDS=0
 
 mkdir -p logs
-ABLATE_PARAM="main"
+ABLATE_PARAM="sigma"
 
 # ablating sigma
 if [ "$ABLATE_PARAM" == "sigma" ]; then

@@ -1,5 +1,5 @@
-Experiment ID: 459
-Detailed Performance Summary: for Experiment ID 459
+Experiment ID: 836
+Detailed Performance Summary: for Experiment ID 836
 ================================================================================
 
 FCFS:
@@ -13,7 +13,7 @@ FCFS:
 
 SPRPT:
   Completed requests: 14792
-  Average wait time: 18.005
+  Average wait time: 7.950
   Mean response time: 10.874
   Average JCT ratio: 0.069
   Average utilization: 0.91
@@ -22,16 +22,34 @@ SPRPT:
 
 LSPRPT:
   Completed requests: 14792
-  Average wait time: 17.768
+  Average wait time: 7.961
   Mean response time: 10.860
   Average JCT ratio: 0.070
   Average utilization: 0.91
   Peak memory: 2942
   Total preemptions: 2613
 
+SJF:
+  Completed requests: 14792
+  Average wait time: 7.397
+  Mean response time: 11.737
+  Average JCT ratio: 0.066
+  Average utilization: 0.92
+  Peak memory: 5028
+  Total preemptions: 6494
+
+DTPRPT(parabola)_0.6:
+  Completed requests: 14792
+  Average wait time: 8.313
+  Mean response time: 10.624
+  Average JCT ratio: 0.073
+  Average utilization: 0.90
+  Peak memory: 2378
+  Total preemptions: 1870
+
 DTPRPT(exponential)_0.3:
   Completed requests: 14792
-  Average wait time: 11.823
+  Average wait time: 8.363
   Mean response time: 10.562
   Average JCT ratio: 0.074
   Average utilization: 0.90
@@ -40,19 +58,10 @@ DTPRPT(exponential)_0.3:
 
 DTPRPT(hyperbola)_0.2:
   Completed requests: 14792
-  Average wait time: 19.725
+  Average wait time: 8.330
   Mean response time: 10.575
   Average JCT ratio: 0.073
   Average utilization: 0.91
   Peak memory: 2378
   Total preemptions: 2731
-
-DTPRPT(parabola)_0.6:
-  Completed requests: 14792
-  Average wait time: 12.411
-  Mean response time: 10.624
-  Average JCT ratio: 0.073
-  Average utilization: 0.90
-  Peak memory: 2378
-  Total preemptions: 1870
 ================================================================================

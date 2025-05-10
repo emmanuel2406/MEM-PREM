@@ -3,6 +3,7 @@ from typing import Deque, Dict
 
 # from vllm.sequence import SequenceGroup
 from simulation import SequenceGroup
+import numpy as np
 import sys
 import math
 
@@ -233,6 +234,23 @@ class DTPRPT(Policy):
         else:
             score = - predicted_len + generated_len
         return score
+    
+
+class PasSPoRT(Policy):
+    """
+    Shortest Preemption Remaining Processing Time
+    """
+    def get_priority(
+        self,
+        now: float,
+        seq_group: SequenceGroup,
+    ) -> float:
+        m0 =  self.get_age_ratio(cur_group=seq_group, soap_compliant=True)
+        predicted_len = seq_group.sampling_params.remain_length[0]
+        generated_len = seq_group.get_seqs()[0].data.get_num_computed_tokens()
+        # score = predicted_len - generated_len **(1 + m0)
+        score = predicted_len - generated_len *  np.exp(m0 * generated_len) /(1 + np.exp(m0 * generated_len))
+        return -score
 
 class PolicyFactory:
 

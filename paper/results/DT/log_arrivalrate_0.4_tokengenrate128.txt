@@ -1,6 +1,5 @@
-WIN
-Experiment ID: 434
-Detailed Performance Summary: for Experiment ID 434
+Experiment ID: 661
+Detailed Performance Summary: for Experiment ID 661
 ================================================================================
 
 FCFS:
@@ -12,36 +11,36 @@ FCFS:
   Peak memory: 1189
   Total preemptions: 0
 
-SPRPT:
-  Completed requests: 9930
-  Average wait time: 2.775
-  Mean response time: 3.548
-  Average JCT ratio: 0.089
-  Average utilization: 0.54
-  Peak memory: 1362
-  Total preemptions: 1316
-
 LSPRPT:
   Completed requests: 9930
-  Average wait time: 2.704
+  Average wait time: 1.616
   Mean response time: 3.538
   Average JCT ratio: 0.090
   Average utilization: 0.54
   Peak memory: 1362
   Total preemptions: 1199
 
-DTPRPT(parabola)_0.2:
+SPRPT:
   Completed requests: 9930
-  Average wait time: 2.331
-  Mean response time: 3.488
-  Average JCT ratio: 0.093
-  Average utilization: 0.53
-  Peak memory: 1189
-  Total preemptions: 844
+  Average wait time: 1.607
+  Mean response time: 3.548
+  Average JCT ratio: 0.089
+  Average utilization: 0.54
+  Peak memory: 1362
+  Total preemptions: 1316
+
+SJF:
+  Completed requests: 9930
+  Average wait time: 1.416
+  Mean response time: 3.838
+  Average JCT ratio: 0.085
+  Average utilization: 0.58
+  Peak memory: 1698
+  Total preemptions: 3084
 
 DTPRPT(exponential)_0.3:
   Completed requests: 9930
-  Average wait time: 2.349
+  Average wait time: 1.673
   Mean response time: 3.491
   Average JCT ratio: 0.093
   Average utilization: 0.53
@@ -50,10 +49,19 @@ DTPRPT(exponential)_0.3:
 
 DTPRPT(hyperbola)_0.2:
   Completed requests: 9930
-  Average wait time: 2.697
-  Mean response time: 3.529
-  Average JCT ratio: 0.090
+  Average wait time: 1.636
+  Mean response time: 3.531
+  Average JCT ratio: 0.092
   Average utilization: 0.54
-  Peak memory: 1239
-  Total preemptions: 1236
+  Peak memory: 1443
+  Total preemptions: 1168
+
+DTPRPT(parabola)_0.6:
+  Completed requests: 9930
+  Average wait time: 1.647
+  Mean response time: 3.510
+  Average JCT ratio: 0.092
+  Average utilization: 0.54
+  Peak memory: 1189
+  Total preemptions: 1061
 ================================================================================

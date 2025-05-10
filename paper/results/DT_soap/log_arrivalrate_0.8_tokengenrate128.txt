@@ -1,24 +1,24 @@
-Experiment ID: 238
-Detailed Performance Summary: for Experiment ID 238
+Experiment ID: 619
+Detailed Performance Summary: for Experiment ID 619
 ================================================================================
+
+SJF:
+  Completed requests: 19784
+  Average wait time: 1621.653
+  Mean response time: 1638.078
+  Average JCT ratio: 7.158
+  Average utilization: 1.00
+  Peak memory: 5153
+  Total preemptions: 7740
 
 SPRPT:
   Completed requests: 19784
-  Average wait time: 1662.692
+  Average wait time: 1625.105
   Mean response time: 1628.542
   Average JCT ratio: 7.133
   Average utilization: 1.00
   Peak memory: 1317
   Total preemptions: 2092
-
-LSPRPT:
-  Completed requests: 19784
-  Average wait time: 1658.172
-  Mean response time: 1628.528
-  Average JCT ratio: 7.133
-  Average utilization: 1.00
-  Peak memory: 1317
-  Total preemptions: 1796
 
 FCFS:
   Completed requests: 19784
@@ -29,30 +29,39 @@ FCFS:
   Peak memory: 1189
   Total preemptions: 0
 
-DTPRPT(hyperbola)_0.2:
+LSPRPT:
   Completed requests: 19784
-  Average wait time: 1662.692
-  Mean response time: 1628.542
+  Average wait time: 1625.119
+  Mean response time: 1628.528
   Average JCT ratio: 7.133
   Average utilization: 1.00
   Peak memory: 1317
-  Total preemptions: 2092
+  Total preemptions: 1796
+
+DTPRPT(hyperbola)_0.2:
+  Completed requests: 19784
+  Average wait time: 1625.121
+  Mean response time: 1628.524
+  Average JCT ratio: 7.133
+  Average utilization: 1.00
+  Peak memory: 1317
+  Total preemptions: 1760
 
 DTPRPT(exponential)_0.3:
   Completed requests: 19784
-  Average wait time: 1656.347
+  Average wait time: 1625.122
   Mean response time: 1628.522
   Average JCT ratio: 7.133
   Average utilization: 1.00
   Peak memory: 1317
   Total preemptions: 1768
 
-DTPRPT(parabola)_0.2:
+DTPRPT(parabola)_0.6:
   Completed requests: 19784
-  Average wait time: 1655.278
-  Mean response time: 1628.519
-  Average JCT ratio: 7.134
+  Average wait time: 1625.107
+  Mean response time: 1628.542
+  Average JCT ratio: 7.133
   Average utilization: 1.00
   Peak memory: 1317
-  Total preemptions: 1716
+  Total preemptions: 2075
 ================================================================================
